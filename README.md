@@ -111,7 +111,7 @@ If you’d like to modify or contribute:
 
 ## 📜 License
 
-MIT License © 2025 [YourName](https://github.com/zhoulianglen)
+MIT License © 2025 [zhoulianglen](https://github.com/zhoulianglen)
 
 ---
 

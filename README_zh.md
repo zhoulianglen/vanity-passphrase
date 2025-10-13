@@ -112,7 +112,7 @@ open index.html
 
 ## 📜 开源协议
 
-MIT License © 2025 [YourName](https://github.com/zhoulianglen)
+MIT License © 2025 [zhoulianglen](https://github.com/zhoulianglen)
 
 ---
 
