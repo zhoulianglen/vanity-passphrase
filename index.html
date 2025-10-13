@@ -3,183 +3,251 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Vanity Passphrase（BIP39→ETH）— 静态直开·优化版</title>
+  <title>BIP39 ETH 靓号地址 Passphrase 生成</title>
   <style>
-    body { font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif; margin:20px; line-height:1.5; }
-    h1 { font-size:18px; margin-bottom:8px; }
-    textarea, input, select, button { font-size:14px; }
-    textarea { width:100%; min-height:92px; }
-    .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
-    .col { flex:1 1 260px; min-width:260px; }
-    .small { font-size:12px; color:#666; }
-    .warn { color:#b00020; font-weight:600; }
-    .ok { color:#006400; font-weight:600; }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
-    fieldset { border:1px solid #ddd; padding:12px; margin-top:12px; }
-    legend { padding:0 6px; color:#555; }
-    label { display:block; margin:6px 0 4px; }
-    .btn { padding:8px 12px; border:1px solid #333; background:#111; color:#fff; cursor:pointer; border-radius:6px; }
-    .btn.secondary { background:#555; border-color:#444; }
-    .btn[disabled] { opacity:.6; cursor:not-allowed; }
-    #log { white-space:pre-wrap; background:#f6f8fa; border:1px solid #e2e2e2; padding:10px; height:180px; overflow:auto; }
-    #found { background:#fff; border:1px dashed #aaa; padding:10px; }
-    .kpi { display:flex; gap:14px; margin:6px 0 0; color:#444; font-size:12px; }
-    details > summary { cursor:pointer; user-select:none; color:#444; }
-    .hidden { display:none; }
+    :root{
+      --bg:#0b0d12; --card:#121521; --muted:#24293a; --text:#e6e9f2; --sub:#a6adbd;
+      --accent:#6ea0ff; --ok:#27c498; --warn:#f6b26b; --danger:#ff6b6b; --border:#30384f;
+      --btn:#1b2030; --btn-hover:#232a3f; --btn-disabled:#2a2f44;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; background:linear-gradient(180deg,#0b0d12 0%,#0e1320 100%);
+      color:var(--text); font:14px/1.6 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+      padding:24px;
+    }
+    .container{max-width:980px;margin:0 auto}
+    header{margin-bottom:18px}
+    .title{
+      font-size:22px; font-weight:700; letter-spacing:.2px; display:flex; align-items:center; gap:10px;
+    }
+    .badge{font-size:12px;padding:3px 8px;border-radius:999px;background:var(--muted);color:#c7cde0;border:1px solid var(--border)}
+    .subtitle{
+      color:var(--sub); margin-top:6px; font-size:13px;
+    }
+    .subtitle strong{color:#cfe0ff}
+    .hint{color:#9aa4bb; font-size:12px; margin-top:6px}
+    .warnText{color:var(--warn); font-weight:600}
+
+    fieldset{border:1px solid var(--border); background:var(--card); border-radius:12px; padding:14px; margin:12px 0}
+    legend{padding:0 8px;color:#cfd6e8;font-size:12px}
+    label{display:block; margin:8px 0 6px; color:#cfd6e8}
+    .row{display:flex; gap:12px; flex-wrap:wrap}
+    .col{flex:1 1 260px; min-width:260px}
+    textarea,input,select{
+      width:100%; background:#0f1422; border:1px solid var(--border); color:var(--text);
+      border-radius:8px; padding:10px 12px; outline:none;
+    }
+    textarea{min-height:96px; resize:vertical}
+    input:focus,textarea:focus,select:focus{border-color:var(--accent); box-shadow:0 0 0 3px rgba(110,160,255,.15)}
+    .mono{font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace}
+    .small{font-size:12px;color:#9aa4bb}
+    details > summary{cursor:pointer;user-select:none;color:#cfd6e8}
+
+    .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px}
+    .btn{
+      appearance:none; border:1px solid var(--border); background:var(--btn); color:#e9eeff; padding:9px 14px; border-radius:10px;
+      cursor:pointer; transition:all .15s ease; font-weight:600;
+    }
+    .btn:hover{background:var(--btn-hover); transform:translateY(-1px)}
+    .btn:active{transform:translateY(0)}
+    .btn[disabled]{background:var(--btn-disabled); color:#7f89a8; cursor:not-allowed; transform:none}
+    .btn.primary{border-color:#3a5fb9; background:#23407f}
+    .btn.primary:hover{background:#295099}
+    .btn.danger{border-color:#7a3943; background:#4d1e25}
+    .btn.danger:hover{background:#5b242b}
+    .state{
+      display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; border:1px solid var(--border);
+      background:var(--muted); color:#c7cde0; font-size:12px;
+    }
+    .state .dot{width:8px;height:8px;border-radius:50%;}
+    .state.idle  .dot{background:#8b9bb8}
+    .state.run   .dot{background:#33e0a7; box-shadow:0 0 0 3px rgba(39,196,152,.12)}
+    .state.stop  .dot{background:#ff8a8a; box-shadow:0 0 0 3px rgba(255,107,107,.12)}
+
+    .kpi{display:flex;gap:16px;color:#cfd6e8;font-size:12px;margin-top:6px;flex-wrap:wrap}
+    .kpi .num{color:#fff}
+    #log{
+      white-space:pre-wrap; background:#0f1422; border:1px solid var(--border); padding:12px; height:200px; overflow:auto;
+      border-radius:10px;
+    }
+    #found{background:#0f1422; border:1px dashed var(--border); padding:12px; border-radius:10px}
+    .ok{color:var(--ok); font-weight:700}
+
+    /* 运行状态下的样式提示（可根据需要扩展） */
+    body.running .btn.primary{background:#2b519b}
+    body.running #startBtn{opacity:.8}
   </style>
-  <!-- 只从本地加载 ethers（放同目录） -->
+
+  <!-- 本地 ethers（必须与本文件在同一目录） -->
   <script src="./ethers.umd.min.js"></script>
 </head>
 <body>
-<h1>Vanity Passphrase（BIP39→ETH）— 静态直开·优化版</h1>
-<p class="warn">⚠️ 联网电脑仅用测试助记词；真实助记词只在离线机使用本页。</p>
-
-<fieldset>
-  <legend>助记词</legend>
-  <label>助记词（测试用）</label>
-  <textarea id="mnemonic" class="mono" placeholder="例如：abandon abandon abandon ... about"></textarea>
-</fieldset>
-
-<fieldset>
-  <legend>匹配规则</legend>
-
-  <div class="row">
-    <div class="col">
-      <label>匹配方式</label>
-      <select id="matchMode" style="width:100%;">
-        <option value="prefix" selected>前缀匹配</option>
-        <option value="suffix">后缀匹配</option>
-        <option value="both">前后缀同时匹配</option>
-      </select>
-    </div>
-    <div class="col" id="boxPrefix">
-      <label>地址前缀（不含 0x）</label>
-      <input id="prefix" type="text" class="mono" placeholder="如：777" style="width:100%;">
-    </div>
-    <!-- 修复：不再重复 class 属性 -->
-    <div class="col hidden" id="boxSuffix">
-      <label>地址后缀（不含 0x）</label>
-      <input id="suffix" type="text" class="mono" placeholder="如：ab" style="width:100%;">
-    </div>
-  </div>
-
-  <div class="row">
-    <div class="col">
-      <label>命中后的行为</label>
-      <select id="hitAction" style="width:100%;">
-        <option value="stop" selected>命中即停止</option>
-        <option value="keep">继续搜索（累计更多命中）</option>
-      </select>
-      <div class="small">选择“继续搜索”时，将把所有命中累积在下方结果区，并可一键下载。</div>
-    </div>
-    <div class="col">
-      <label>运行模式</label>
-      <label><input type="radio" name="mode" value="random" checked> 随机穷举</label>
-      <label style="margin-left:16px;"><input type="radio" name="mode" value="wordlist"> 词表模式</label>
-    </div>
-  </div>
-
-  <div id="wordlistBox" class="hidden">
-    <label>词表（每行一个候选 passphrase）</label>
-    <textarea id="wordlist" class="mono" placeholder="示例：&#10;777&#10;Len777&#10;L777"></textarea>
-  </div>
-
-  <div id="randomBox">
-    <div class="row">
-      <div class="col">
-        <label>字符集</label>
-        <input id="charset" type="text" class="mono" style="width:100%;" value="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789">
+  <div class="container">
+    <header>
+      <div class="title">
+        BIP 39 ETH 靓号地址 Passphrase 生成
+        <span class="badge">离线可用</span>
       </div>
-      <div class="col">
-        <label>最小长度</label>
-        <input id="minLen" type="number" value="3" min="1" style="width:100%;">
+      <div class="subtitle">
+        在不改变原有的助记词情况下，通过派生不同的 <strong>Passphrase</strong> 为你生成自定义前缀/后缀的 ETH 钱包地址。
       </div>
-      <div class="col">
-        <label>最大长度</label>
-        <input id="maxLen" type="number" value="6" min="1" style="width:100%;">
+      <div class="hint">
+        什么是 Passphrase：它是 <strong>BIP39</strong> 的“扩展口令”（又称第25个词），与助记词一起生成种子。改变 Passphrase 可得到不同地址，但<strong>不会改变助记词本身</strong>。
       </div>
-    </div>
-  </div>
+      <div class="hint warnText">联网环境仅用于测试助记词与功能，真实助记词与 Passphrase 请在离线机操作。</div>
+    </header>
 
-  <details style="margin-top:6px;">
-    <summary>高级设置（可选）</summary>
-    <div class="row">
-      <div class="col">
-        <label>派生路径索引（m/44'/60'/0'/0/<span class="mono">index</span>）</label>
-        <input id="addrIndex" type="number" value="0" min="0" style="width:100%;">
-        <div class="small">大多数钱包默认使用 index=0（第一个地址）。你也可以试 1、2… 派生下一个地址。</div>
-      </div>
-      <div class="col">
-        <label>性能/流畅度</label>
-        <input id="speed" type="range" min="1" max="5" value="3" style="width:100%;">
-        <div class="small">向右 = 速度优先；向左 = 流畅优先。</div>
-      </div>
-    </div>
-  </details>
-</fieldset>
+    <fieldset>
+      <legend>助记词</legend>
+      <label>助记词（测试用）</label>
+      <textarea id="mnemonic" class="mono" placeholder="例如：abandon abandon abandon ... about"></textarea>
+    </fieldset>
 
-<fieldset>
-  <legend>运行</legend>
-  <div class="row">
-    <div class="col">
-      <label>单步派生（即时验证）：</label>
+    <fieldset>
+      <legend>匹配规则</legend>
       <div class="row">
-        <input id="onePass" class="mono" placeholder="输入一个 passphrase 试算" style="flex:1">
-        <button id="btnOne" class="btn" style="flex:0 0 auto;">派生一次</button>
+        <div class="col">
+          <label>匹配方式</label>
+          <select id="matchMode">
+            <option value="prefix" selected>前缀匹配</option>
+            <option value="suffix">后缀匹配</option>
+            <option value="both">前后缀同时匹配</option>
+          </select>
+        </div>
+        <div class="col" id="boxPrefix">
+          <label>地址前缀（不含 0x）</label>
+          <input id="prefix" type="text" class="mono" placeholder="如：777">
+        </div>
+        <div class="col" id="boxSuffix" style="display:none;">
+          <label>地址后缀（不含 0x）</label>
+          <input id="suffix" type="text" class="mono" placeholder="如：ab">
+        </div>
       </div>
-      <div id="oneOut" class="mono small" style="margin-top:6px;color:#444;"></div>
-    </div>
+
+      <div class="row">
+        <div class="col">
+          <label>命中后的行为</label>
+          <select id="hitAction">
+            <option value="stop" selected>命中即停止</option>
+            <option value="keep">继续搜索（累计更多命中）</option>
+          </select>
+          <div class="small">选择“继续搜索”时，将把所有命中累积，并可一键下载 CSV。</div>
+        </div>
+        <div class="col">
+          <label>运行模式</label>
+          <div class="row" style="gap:14px;">
+            <label><input type="radio" name="mode" value="random" checked> 随机穷举</label>
+            <label><input type="radio" name="mode" value="wordlist"> 词表模式</label>
+          </div>
+        </div>
+      </div>
+
+      <div id="wordlistBox" style="display:none;">
+        <label>词表（每行一个候选 Passphrase）</label>
+        <textarea id="wordlist" class="mono" placeholder="示例：&#10;777&#10;Len777&#10;L777"></textarea>
+      </div>
+
+      <div id="randomBox">
+        <div class="row">
+          <div class="col">
+            <label>字符集</label>
+            <input id="charset" type="text" class="mono" value="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789">
+          </div>
+          <div class="col">
+            <label>最小长度</label>
+            <input id="minLen" type="number" value="3" min="1">
+          </div>
+          <div class="col">
+            <label>最大长度</label>
+            <input id="maxLen" type="number" value="6" min="1">
+          </div>
+        </div>
+      </div>
+
+      <details style="margin-top:6px;">
+        <summary>高级设置（可选）</summary>
+        <div class="row">
+          <div class="col">
+            <label>派生路径索引（m/44'/60'/0'/0/<span class="mono">index</span>）</label>
+            <input id="addrIndex" type="number" value="0" min="0">
+            <div class="small">大多数钱包默认使用 index=0（第一个地址）。可尝试 1、2… 派生下一个地址。</div>
+          </div>
+          <div class="col">
+            <label>性能/流畅度</label>
+            <input id="speed" type="range" min="1" max="5" value="3" />
+            <div class="small">向右 = 速度优先；向左 = 流畅优先。</div>
+          </div>
+        </div>
+      </details>
+    </fieldset>
+
+    <fieldset>
+      <legend>运行</legend>
+      <div class="row">
+        <div class="col">
+          <label>单步派生（即时验证）</label>
+          <div class="row">
+            <input id="onePass" class="mono" placeholder="输入一个 passphrase 试算">
+            <button id="btnOne" class="btn">派生一次</button>
+          </div>
+          <div id="oneOut" class="small mono" style="margin-top:6px;color:#cfd6e8;"></div>
+        </div>
+      </div>
+
+      <div class="toolbar" style="margin-top:10px;">
+        <button id="startBtn" class="btn primary">开始</button>
+        <button id="stopBtn" class="btn danger" disabled>停止</button>
+        <button id="downloadBtn" class="btn" disabled>下载命中结果</button>
+        <span id="status" class="state idle"><span class="dot"></span><span class="text">就绪</span></span>
+      </div>
+
+      <div class="kpi">
+        <div>尝试总数：<span id="kpiTried" class="num">0</span></div>
+        <div>速率：<span id="kpiRate" class="num">0</span> 次/秒</div>
+        <div>耗时：<span id="kpiElapsed" class="num">0.0</span>s</div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>进度</legend>
+      <div id="log" class="mono"></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>命中结果</legend>
+      <div id="found" class="mono small"><div>暂无</div></div>
+    </fieldset>
   </div>
 
-  <div class="row" style="margin-top:10px;">
-    <button id="startBtn" class="btn">开始</button>
-    <button id="stopBtn" class="btn secondary" disabled>停止</button>
-    <button id="downloadBtn" class="btn secondary" disabled>下载命中结果</button>
-    <span id="status" class="small"></span>
-  </div>
+  <!-- 业务脚本（只需这一个 JS + ethers.umd.min.js） -->
+  <script src="./vanity_app_static_optimized.js"></script>
 
-  <div class="kpi">
-    <div>尝试总数：<span id="kpiTried">0</span></div>
-    <div>速率：<span id="kpiRate">0</span> 次/秒</div>
-    <div>耗时：<span id="kpiElapsed">0.0</span>s</div>
-  </div>
-</fieldset>
+  <!-- 交互联动：匹配方式/模式的输入切换（保持本地纯前端） -->
+  <script>
+    (function(){
+      const mm = document.getElementById('matchMode');
+      const boxP = document.getElementById('boxPrefix');
+      const boxS = document.getElementById('boxSuffix');
+      const wl = document.getElementById('wordlistBox');
+      const rb = document.getElementById('randomBox');
 
-<fieldset>
-  <legend>进度</legend>
-  <div id="log" class="mono"></div>
-</fieldset>
+      function updateMatchUI(){
+        const v = mm.value;
+        boxP.style.display = (v==='prefix'||v==='both') ? '' : 'none';
+        boxS.style.display = (v==='suffix'||v==='both') ? '' : 'none';
+      }
+      mm.addEventListener('change', updateMatchUI); updateMatchUI();
 
-<fieldset>
-  <legend>命中结果</legend>
-  <div id="found" class="mono small"><div>暂无</div></div>
-</fieldset>
-
-<script src="./vanity_app_static_optimized.js"></script>
-<script>
-  // UI联动：匹配方式 & 模式切换
-  (function(){
-    const mm = document.getElementById('matchMode');
-    const boxP = document.getElementById('boxPrefix');
-    const boxS = document.getElementById('boxSuffix');
-    const wl = document.getElementById('wordlistBox');
-    const rb = document.getElementById('randomBox');
-
-    function updateMatchUI(){
-      const v = mm.value;
-      boxP.classList.toggle('hidden', !(v==='prefix'||v==='both'));
-      boxS.classList.toggle('hidden', !(v==='suffix'||v==='both'));
-    }
-    mm.addEventListener('change', updateMatchUI); updateMatchUI();
-
-    function updateModeUI(){
-      const v = document.querySelector('input[name="mode"]:checked').value;
-      wl.classList.toggle('hidden', v!=='wordlist');
-      rb.classList.toggle('hidden', v!=='random');
-    }
-    document.querySelectorAll('input[name="mode"]').forEach(r=>r.addEventListener('change', updateModeUI));
-    updateModeUI();
-  })();
-</script>
+      function updateModeUI(){
+        const v = document.querySelector('input[name="mode"]:checked').value;
+        wl.style.display = (v==='wordlist') ? '' : 'none';
+        rb.style.display = (v==='random') ? '' : 'none';
+      }
+      document.querySelectorAll('input[name="mode"]').forEach(r=>r.addEventListener('change', updateModeUI));
+      updateModeUI();
+    })();
+  </script>
 </body>
 </html>
