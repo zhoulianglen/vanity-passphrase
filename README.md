@@ -3,6 +3,8 @@
 
 🔒 **Offline-safe | Open-source | Deterministic**
 
+📘 [中文说明](./README_zh.md)
+
 ---
 
 ## 🧠 What is this?
@@ -24,6 +26,15 @@ Instead of generating new mnemonics, it derives **different wallet addresses** b
 
 ---
 
+## 🌐 Demo
+
+You can try the online demo here:  
+👉 **[vanity.imzl.com](https://vanity.imzl.com)**  
+
+(Offline usage is still recommended for security.)
+
+---
+
 ## 🧩 How It Works
 
 > BIP39 defines a “passphrase” that is mixed with the mnemonic to create the seed.  
@@ -38,7 +49,7 @@ This tool iterates through candidate passphrases and checks if the derived ETH a
 You can run it **completely offline**.
 
 ```bash
-git clone https://github.com/yourname/vanity-passphrase.git
+git clone https://github.com/zhoulianglen/vanity-passphrase.git
 cd vanity-passphrase
 open index.html
 ```
@@ -100,7 +111,7 @@ If you’d like to modify or contribute:
 
 ## 📜 License
 
-MIT License © 2025 [YourName](https://github.com/yourname)
+MIT License © 2025 [YourName](https://github.com/zhoulianglen)
 
 ---
 
