@@ -29,7 +29,7 @@ Instead of generating new mnemonics, it derives **different wallet addresses** b
 ## 🌐 Demo
 
 You can try the online demo here:  
-👉 **[vanity.imzl.com](https://vanity.imzl.com)**  
+👉 **[vanity.zhoulianglen.com](https://vanity.zhoulianglen.com)**  
 
 (Offline usage is still recommended for security.)
 

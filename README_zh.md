@@ -30,7 +30,7 @@
 ## 🌐 在线 Demo
 
 你可以直接访问 Demo 页面体验：  
-👉 **[vanity.imzl.com](https://vanity.imzl.com)**  
+👉 **[vanity.zhoulianglen.com](https://vanity.zhoulianglen.com)**  
 
 （推荐离线运行以确保安全）
 
